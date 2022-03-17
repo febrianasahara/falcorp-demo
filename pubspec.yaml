@@ -37,4 +37,6 @@ flutter:
     - assets/icons/ic_provider_vodacom.png
     - assets/icons/ic_provider_world_call.png
     - assets/images/flash_guy.png
+    - assets/images/icon.jpeg
+    - assets/images/flash_bg.jpeg
     

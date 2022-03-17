@@ -1,6 +1,12 @@
 // ignore_for_file: unnecessary_const, prefer_const_literals_to_create_immutables, non_constant_identifier_names, use_key_in_widget_constructors
 
+import 'dart:convert';
+
+import 'package:airtime_purchase_app/models/menu_response.dart';
 import 'package:airtime_purchase_app/repositories/airtime-repository.dart';
+import 'package:airtime_purchase_app/theme/palette.dart';
+import 'package:airtime_purchase_app/views/airtime-page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -16,11 +22,13 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   double _anim_wrapper_height = 0.35;
   late AirtimeRepository airtimeRepository;
   bool busy = false;
+  bool showRetry = false;
 
   @override
   void initState() {
     airtimeRepository = AirtimeRepository(apiHost: widget.apiUrl);
     super.initState();
+    fetchData();
   }
 
   initIntroAnimations() async {
@@ -29,7 +37,38 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       _anim_wrapper_height = 0.46;
     });
   }
-  
+
+  fetchData() async {
+    setState(() {
+      busy = true;
+      showRetry = false;
+    });
+    await airtimeRepository.getAirtimeMenu().then((responseFromServer) {
+      setState(() {
+        busy = false;
+      });
+      if (kDebugMode) {
+        print(json.encode(responseFromServer));
+      }
+      openApp(responseFromServer);
+    }).catchError((error) {
+      if (kDebugMode) {
+        print(error.toString());
+      }
+      setState(() {
+        showRetry = true;
+        busy = false;
+      });
+    });
+  }
+
+  openApp(MenuResponse responseFromServer) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => AirtimePage(data: responseFromServer)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +81,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
                 decoration: const BoxDecoration(
-                  color: Colors.black,
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/auth_bg.png'),
-                    fit: BoxFit.cover,
-                  ),
+                  color: Palette.primaryDark,
                 ),
               )),
           Positioned(
@@ -97,7 +132,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                       ],
                     ),
                     baseColor: Colors.black,
-                    highlightColor: Colors.amber,
+                    highlightColor: Palette.primaryLight,
                     loop: 50,
                   ),
                 ),
@@ -106,21 +141,24 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 flex: 3,
                 child: Column(
                   children: [
-                    busy
+                    showRetry
                         ? Container()
                         : Container(
+                            margin: EdgeInsets.only(top: 30),
                             height: 72,
                             width: double.infinity,
                             child: Material(
-                              color: Colors.lightGreen,
+                              color: Colors.redAccent,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),
                               child: InkWell(
-                                onTap: () {},
-                                child: Center(
-                                  child: Text(
-                                    busy ? 'Eita!!' : 'Buy Airtime',
-                                    style: const TextStyle(
+                                onTap: () {
+                                  fetchData();
+                                },
+                                child: const Center(
+                                  child: const Text(
+                                    'Retry',
+                                    style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -140,9 +178,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               curve: Curves.decelerate,
               left: 0,
               right: 0,
-              bottom:
-                  _anim_wrapper_height * MediaQuery.of(context).size.height -
-                      80,
+              top: _anim_wrapper_height * MediaQuery.of(context).size.height -
+                  80,
               child: _getIcon()),
         ],
       ),
@@ -152,8 +189,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   Widget _getIcon() {
     if (busy) {
       return SizedBox(
-        height: 60,
-        width: 60,
+        height: 80,
+        width: 80,
         child: Material(
           color: Colors.black,
           clipBehavior: Clip.antiAlias,
@@ -162,10 +199,10 @@ class WelcomeScreenState extends State<WelcomeScreen> {
           child: const Padding(
             padding: const EdgeInsets.all(12),
             child: SizedBox(
-              height: 60,
-              width: 60,
+              height: 80,
+              width: 80,
               child: const CircularProgressIndicator(
-                color: Colors.amber,
+                color: Colors.lightGreen,
                 strokeWidth: 2,
               ),
             ),
@@ -178,11 +215,11 @@ class WelcomeScreenState extends State<WelcomeScreen> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 500),
             curve: Curves.linear,
-            height: 70,
-            width: 70,
+            height: 170,
+            width: 170,
             decoration: const BoxDecoration(
               image: const DecorationImage(
-                image: AssetImage('assets/icons/icon.png'),
+                image: AssetImage('assets/images/flash_guy.png'),
                 fit: BoxFit.fitHeight,
               ),
             ),
