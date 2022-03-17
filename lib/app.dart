@@ -1,3 +1,4 @@
+import 'package:airtime_purchase_app/theme/palette.dart';
 import 'package:flutter/material.dart';
 import 'views/welcome.dart';
 
@@ -13,7 +14,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Ndropa " + flavor,
-      theme: ThemeData(primaryColor: Colors.amber),
+      theme: ThemeData(primaryColor: Palette.primaryLight),
       home: Scaffold(
         resizeToAvoidBottomInset: true,
         body: WelcomeScreen(

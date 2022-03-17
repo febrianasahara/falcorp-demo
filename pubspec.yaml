@@ -1,7 +1,7 @@
 name: airtime_purchase_app
 description: A demo project based off of the Falcorp assessment.
 
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
 version: 1.0.0+1
 
@@ -12,14 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
 
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   http: ^0.13.4
   intl: ^0.17.0
   shimmer: ^2.0.0
-  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -30,7 +27,6 @@ flutter:
 
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/icons/ic_eezi_airtime.png
     - assets/icons/ic_provider_cell.png
@@ -39,4 +35,5 @@ flutter:
     - assets/icons/ic_provider_virgin.png
     - assets/icons/ic_provider_vodacom.png
     - assets/icons/ic_provider_world_call.png
+    - assets/images/flash_guy.png
     
