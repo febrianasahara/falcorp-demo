@@ -1,5 +1,6 @@
 // ignore_for_file: unnecessary_const, prefer_const_literals_to_create_immutables, non_constant_identifier_names, use_key_in_widget_constructors
 
+import 'package:airtime_purchase_app/repositories/airtime-repository.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -13,9 +14,12 @@ class WelcomeScreen extends StatefulWidget {
 class WelcomeScreenState extends State<WelcomeScreen> {
   static const routeName = '/welcome-screen';
   double _anim_wrapper_height = 0.35;
+  late AirtimeRepository airtimeRepository;
   bool busy = false;
+
   @override
   void initState() {
+    airtimeRepository = AirtimeRepository(apiHost: widget.apiUrl);
     super.initState();
   }
 
@@ -25,6 +29,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       _anim_wrapper_height = 0.46;
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
