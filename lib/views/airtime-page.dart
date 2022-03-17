@@ -14,6 +14,8 @@ class AirtimePage extends StatefulWidget {
 
 class AirtimePageState extends State<AirtimePage> {
   static const routeName = '/airtime-page';
+    final TextStyle _titleTextStyle = const TextStyle(
+      color: Colors.white70, fontSize: 22, fontWeight: FontWeight.bold);
   bool busy = false;
 
   // state variabls
@@ -28,12 +30,15 @@ class AirtimePageState extends State<AirtimePage> {
   late MenuResponse menuData;
   @override
   void initState() {
+    menuData = widget.data;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(centerTitle: true, title: ,
+      ),
       body: Stack(
         children: [
           Hero(
@@ -45,6 +50,15 @@ class AirtimePageState extends State<AirtimePage> {
                   color: Palette.primaryDark,
                 ),
               )),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              CustomAppBar(
+                  title: menuData.data!.menuInfo!.name!,
+                  displayAmount: '${menuData.data!.menuInfo!.currency!.symbol}3012.00',
+                  parent: context)
+            ],
+          )
         ],
       ),
     );

@@ -17,7 +17,12 @@ class ServiceProvider {
 		icon = json['icon'] != null ? GridIcon.fromJson(json['icon']) : null;
 		color = json['color'] != null ? ActionColor.fromJson(json['color']) : null;
 		displayType = json['displayType'];
-		messages = json['messages'].cast<String>();
+		   if (json['messages'] != null) {
+      messages = <String>[];
+      json['messages'].forEach((v) {
+        messages!.add(v);
+      });
+    }
 	}
 
 	Map<String, dynamic> toJson() {
