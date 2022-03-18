@@ -22,7 +22,12 @@ class Product {
 
   Product.fromJson(Map<String, dynamic> json) {
     purchaseTypeId = json['purchaseTypeId'];
-    messages = json['messages'].cast<String>();
+      if (json['messages'] != null) {
+      messages = <String>[];
+      json['messages'].forEach((v) {
+        messages!.add(v);
+      });
+    }
     providerId = json['providerId'];
     doneActionId = json['doneActionId'];
     preDefinedAmount = json['preDefinedAmount'] != null

@@ -18,7 +18,12 @@ class PurchaseType {
     id = json['id'];
     name = json['name'];
     displayType = json['displayType'];
-    completeOptions = json['completeOptions'].cast<int>();
+     if (json['completeOptions'] != null) {
+      completeOptions = <int>[];
+      json['completeOptions'].forEach((v) {
+        completeOptions!.add(v);
+      });
+    }
     doneActionId = json['doneActionId'];
     iconName = json['iconName'];
   }
