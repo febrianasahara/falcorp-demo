@@ -6,16 +6,17 @@ import 'package:airtime_purchase_app/models/data/service_provider.dart';
 import 'package:airtime_purchase_app/models/menu_response.dart';
 import 'package:airtime_purchase_app/models/purchase/custom_amount_item.dart';
 import 'package:airtime_purchase_app/models/purchase/fixed_amount_item.dart';
-import 'package:airtime_purchase_app/models/purchase/pre_defined_amount.dart';
 import 'package:airtime_purchase_app/models/purchase/product.dart';
 import 'package:airtime_purchase_app/models/purchase/purchase_types.dart';
 import 'package:airtime_purchase_app/models/ui/available-done-actions.dart';
 import 'package:airtime_purchase_app/models/ui/available_input_fields.dart';
 import 'package:airtime_purchase_app/theme/palette.dart';
+import 'package:airtime_purchase_app/views/pin-utility.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
-import 'package:flutter_svg/svg.dart';
 
 enum PageStates { topup, voucher }
 
@@ -39,18 +40,19 @@ class AirtimePage extends StatefulWidget {
 
 class AirtimePageState extends State<AirtimePage> {
   final TextStyle _titleTextStyle = const TextStyle(
-      color: Colors.white70, fontSize: 22, fontWeight: FontWeight.bold);
+      color: Colors.white70, fontSize: 22, fontWeight: FontWeight.w700);
 
   final TextStyle _itemTextStyle = const TextStyle(
-      color: Colors.black, fontSize: 20, fontWeight: FontWeight.w700);
+      color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600);
   final TextStyle _buttonTextStyle = const TextStyle(
-      color: Colors.black38, fontSize: 16, fontWeight: FontWeight.w700);
+      color: Colors.black38, fontSize: 16, fontWeight: FontWeight.w500);
   final TextEditingController _customAountController = TextEditingController();
   final TextEditingController _msidnController = TextEditingController();
   late FocusNode amountFocusNode;
   late FocusNode phoneFocusNode;
 
   bool busy = false;
+  bool showDetail = true;
 
   // state variabls
   ActionStates currentAction = ActionStates.typeSelection;
@@ -58,7 +60,7 @@ class AirtimePageState extends State<AirtimePage> {
   bool typeSelected = false;
   bool networkSelected = false;
   bool amountSelected = false;
-  bool canPurchase = false;
+  bool addedToQuickSell = false;
 
   // app variables
   late FixedAmountItem selectedAmount = FixedAmountItem(amountInCents: 0);
@@ -71,7 +73,9 @@ class AirtimePageState extends State<AirtimePage> {
   int selectedAmountInCents = 0;
   int selectedProductSKU = -1;
   late MenuResponse menuData;
-
+  double balance = 3012.29;
+  late String _generatedAirtimePIN;
+  final PinUtility pinGenerator = new PinUtility();
   // user interaction events
   onTypeSelected(PurchaseType type) {
     currentUseCase = PageStates.voucher;
@@ -221,7 +225,7 @@ class AirtimePageState extends State<AirtimePage> {
   }
 
   _showPhoneNumberSheet() {
-    amountFocusNode.requestFocus();
+    phoneFocusNode.requestFocus();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -306,6 +310,16 @@ class AirtimePageState extends State<AirtimePage> {
     );
   }
 
+  _onSaleComplete() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return _saleCompleteView();
+      },
+    );
+  }
+
   @override
   void initState() {
     menuData = widget.data;
@@ -318,8 +332,27 @@ class AirtimePageState extends State<AirtimePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 3,
+        backgroundColor: const Color(0xff1fc65a),
         centerTitle: true,
-        title: Text(menuData.data!.menuInfo!.name!),
+        title: Text(
+          menuData.data!.menuInfo!.name!,
+          style: _titleTextStyle,
+        ),
+        actions: [
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: Text(
+                '${menuData.data!.menuInfo!.currency!.symbol!}${balance.toStringAsFixed(2)}',
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white70),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -864,11 +897,12 @@ class AirtimePageState extends State<AirtimePage> {
   }
 
   Widget _actionButton() {
-    AvailableDoneActions action = _getDoneAction(selectedAction.doneActionId?? 1);
+    AvailableDoneActions action =
+        _getDoneAction(selectedAction.doneActionId ?? 1);
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding:const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: SizedBox(
           height: 70,
           child: AnimatedOpacity(
@@ -881,16 +915,34 @@ class AirtimePageState extends State<AirtimePage> {
                   child: Stack(
                     children: [
                       Center(
-                        child: Text(action.name!, style: const TextStyle(
-      color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),),
+                        child: Text(
+                          action.name!,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      Align(alignment: Alignment.centerRight,child: Padding(padding: EdgeInsets.all(15),child: SizedBox(height: 30,width: 30,child: Image.asset('assets/icons/double-chevron.png'),),),)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Image.asset(
+                                'assets/icons/double-chevron.png',
+                                height: 25,
+                                width: 25),
+                          ),
+                        ),
+                      )
                     ],
                   ),
                   onTap: () {
                     if (currentAction == ActionStates.purchaseSummary) {
                       // click enabled - call API
-
+                      _onSaleComplete();
                     }
                   },
                 ),
@@ -902,6 +954,339 @@ class AirtimePageState extends State<AirtimePage> {
         ),
       ),
     );
+  }
+
+  Widget _saleCompleteView() {
+    var size = MediaQuery.of(context).size;
+    return Container(
+      height: size.height,
+      width: size.width,
+      color: const Color(0xff88d000),
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const Divider(
+                  height: 60,
+                ),
+                Card(
+                  child: SizedBox(
+                      height: 60,
+                      child: Center(
+                        child: Text(
+                          _getDoneAction(selectedAction.id!)
+                              .completeScreenTitle!,
+                          style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900),
+                        ),
+                      )),
+                ),
+                Card(
+                    child: Column(
+                  children: [
+                    // get payment result ui
+                    ExpansionPanelList(
+                      animationDuration: Duration(milliseconds: 1000),
+                      children: [_purchaseResult()],
+                      expansionCallback: (panelIndex, isExpanded) {
+                        
+                        setState(() {
+                          showDetail = isExpanded;
+                        });
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      color: Colors.grey.shade200,
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    SizedBox(
+                      height: 40,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                              child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              'Your Sale',
+                              style: _buttonTextStyle,
+                            ),
+                          )),
+                          Expanded(
+                              child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              '${selectedProvider.name!} ${selectedAction.name!}',
+                              textAlign: TextAlign.right,
+                              style: _buttonTextStyle,
+                            ),
+                          ))
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 40,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                              child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              'Total',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          )),
+                          Expanded(
+                              child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              _getFormattedAmountFromCents(
+                                  selectedAmountInCents),
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                            ),
+                          ))
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    )
+                  ],
+                )),
+                Card(
+                  child: Column(
+                    children: [
+                      Divider(
+                        height: 1,
+                        color: Colors.grey.shade600,
+                      ),
+                      ListTile(
+                        leading: Icon(
+                          Icons.receipt,
+                          size: 25,
+                          color: Colors.black87,
+                        ),
+                        title: Text(
+                          'ADD TO QUICK SELL',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        trailing: SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: CupertinoSwitch(
+                            value: addedToQuickSell,
+                            onChanged: (v) {},
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    onTap: () {
+                      resetUI();
+                      Navigator.of(context).pop();
+                    },
+                    leading: Icon(
+                      Icons.repeat,
+                      size: 25,
+                      color: Colors.black87,
+                    ),
+                    title: Text(
+                      'SELL AGAIN',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    trailing: SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.print,
+                      size: 25,
+                      color: Colors.black87,
+                    ),
+                    title: Text(
+                      'REPRINT',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    trailing: SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.share,
+                      size: 25,
+                      color: Colors.black87,
+                    ),
+                    title: Text(
+                      'SHARE',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    trailing: SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 30, top: 60),
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: Material(
+                  color: Colors.black,
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25)),
+                  child: InkWell(
+                      onTap: () {
+                        resetUI();
+                        Navigator.of(context).pop();
+                      },
+                      child: const Icon(
+                        Icons.close_fullscreen,
+                        color: Colors.white,
+                      )),
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  ExpansionPanel _purchaseResult() {
+    if (currentUseCase == PageStates.topup) {
+      showDetail = false;
+      return ExpansionPanel(
+          headerBuilder: (context, isExpanded) {
+            return SizedBox(
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                      child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Cellphone Number',
+                      style: _buttonTextStyle,
+                    ),
+                  )),
+                  Expanded(
+                      child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      _msidnController.text,
+                      textAlign: TextAlign.right,
+                      style: _buttonTextStyle,
+                    ),
+                  ))
+                ],
+              ),
+            );
+          },
+          body: ListTile(
+            title:
+                Text('Add to Contacts', style: TextStyle(color: Colors.white)),
+            tileColor: Colors.green,
+          ),
+          isExpanded: false,
+          canTapOnHeader: false,
+          backgroundColor: Colors.white);
+    }
+ 
+    showDetail = true;
+ 
+    return ExpansionPanel(
+        headerBuilder: (context, isExpanded) {
+          return SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    'PIN',
+                    style: _buttonTextStyle,
+                  ),
+                )),
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    pinGenerator.getRandomPIN(),
+                    textAlign: TextAlign.right,
+                    style: _buttonTextStyle,
+                  ),
+                ))
+              ],
+            ),
+          );
+        },
+        body: Container(height: 100,child:ListTile(
+          title: Text('Some test', style: TextStyle(color: Colors.white)),
+          tileColor: Colors.white,
+        )),
+        isExpanded: showDetail,
+        canTapOnHeader: true,
+        
+        backgroundColor: Colors.white);
   }
 
   // utility fuctions
@@ -959,5 +1344,24 @@ class AirtimePageState extends State<AirtimePage> {
       }
     }
     return selectedAction;
+  }
+
+  resetUI() {
+    setState(() {
+      currentAction = ActionStates.typeSelection;
+      currentUseCase = PageStates.voucher;
+      typeSelected = false;
+      networkSelected = false;
+      amountSelected = false;
+      selectedAmount = FixedAmountItem(amountInCents: 0);
+      selectedCustomAmount =
+          CustomAmountItem(maxAmountInCents: 0, minAmountInCents: 0);
+      selectedAction = PurchaseType(name: '-');
+      selectedProvider = ServiceProvider(name: '-');
+      topupCustomAmount;
+      selectedProduct;
+      selectedAmountInCents = 0;
+      selectedProductSKU = -1;
+    });
   }
 }
