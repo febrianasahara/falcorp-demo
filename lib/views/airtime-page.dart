@@ -9,8 +9,11 @@ import 'package:airtime_purchase_app/models/purchase/fixed_amount_item.dart';
 import 'package:airtime_purchase_app/models/purchase/pre_defined_amount.dart';
 import 'package:airtime_purchase_app/models/purchase/product.dart';
 import 'package:airtime_purchase_app/models/purchase/purchase_types.dart';
+import 'package:airtime_purchase_app/models/ui/available_input_fields.dart';
 import 'package:airtime_purchase_app/theme/palette.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 
 enum PageStates { topup, voucher }
 
@@ -33,12 +36,17 @@ class AirtimePage extends StatefulWidget {
 }
 
 class AirtimePageState extends State<AirtimePage> {
-  final TextStyle titleTextStyle = const TextStyle(
+  final TextStyle _titleTextStyle = const TextStyle(
       color: Colors.white70, fontSize: 22, fontWeight: FontWeight.bold);
+
   final TextStyle _itemTextStyle = const TextStyle(
       color: Colors.black, fontSize: 20, fontWeight: FontWeight.w700);
   final TextStyle _buttonTextStyle = const TextStyle(
       color: Colors.black38, fontSize: 16, fontWeight: FontWeight.w700);
+  final TextEditingController _customAountController = TextEditingController();
+  final TextEditingController _msidnController = TextEditingController();
+  late FocusNode amountFocusNode;
+  late FocusNode phoneFocusNode;
 
   bool busy = false;
 
@@ -91,11 +99,23 @@ class AirtimePageState extends State<AirtimePage> {
   }
 
   onAmountSelected(int amountInCents, int sku) {
+    int type = 1;
+    if (currentUseCase == PageStates.topup) {
+      type = 2;
+    }
+    for (var prod in menuData.data!.products!) {
+      if (prod.providerId == selectedProvider.id &&
+          prod.purchaseTypeId == type) {
+        selectedProduct = prod;
+        break;
+      }
+    }
     setState(() {
       // set amount
 
       selectedAmountInCents = amountInCents;
       selectedProductSKU = sku;
+
       amountSelected = true;
       // next step || ussd action
       if (currentUseCase == PageStates.topup) {
@@ -108,9 +128,188 @@ class AirtimePageState extends State<AirtimePage> {
     });
   }
 
+  onPhoneNumberSubmitted(String phone) {
+    setState(() {
+      currentAction = ActionStates.purchaseSummary;
+    });
+  }
+
+  _showCustomAmountSheet(String title) {
+    amountFocusNode.requestFocus();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          color: Colors.black87,
+          alignment: Alignment.center,
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  SizedBox(
+                    height: 20,
+                  ),
+                  AppBar(
+                    centerTitle: false,
+                    title: Text(
+                      title,
+                      style: _titleTextStyle,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Center(
+                      child: TextFormField(
+                        controller: _customAountController,
+                        cursorColor: Colors.grey.shade200,
+                        focusNode: amountFocusNode,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold),
+                        keyboardType: TextInputType.number,
+                        onSaved: (v) {
+                          onAmountSelected(
+                              int.parse(v!) * 1000, topupCustomAmount.sku!);
+                          Navigator.of(context).pop();
+                        },
+                        decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.only(
+                                left: 15, bottom: 11, top: 11, right: 15),
+                            hintStyle: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold),
+                            hintText: "R0"),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      child: Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            onAmountSelected(
+                                int.parse(_customAountController.text) * 1000,
+                                topupCustomAmount.sku!);
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('SUBMIT'),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  _showPhoneNumberSheet() {
+    amountFocusNode.requestFocus();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          color: Colors.black87,
+          alignment: Alignment.center,
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  SizedBox(
+                    height: 20,
+                  ),
+                  AppBar(
+                    centerTitle: false,
+                    title: Text(
+                      'Enter Cellphone Number',
+                      style: _titleTextStyle,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Center(
+                      child: TextFormField(
+                        controller: _msidnController,
+                        cursorColor: Colors.grey.shade200,
+                        focusNode: phoneFocusNode,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold),
+                        keyboardType: TextInputType.number,
+                        onSaved: (v) {
+                          try {
+                            onPhoneNumberSubmitted(v!);
+                          } catch (e) {
+                            if (kDebugMode) {
+                              print(e.toString());
+                            }
+                          }
+                        },
+                        decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.only(
+                                left: 15, bottom: 11, top: 11, right: 15),
+                            hintStyle: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold),
+                            hintText: "0656897833"),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      child: Center(
+                        child: ElevatedButton(
+                          
+                          onPressed: () {
+                            onPhoneNumberSubmitted(_msidnController.text);
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('SUBMIT'),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     menuData = widget.data;
+    amountFocusNode = FocusNode();
+    phoneFocusNode = FocusNode();
     super.initState();
   }
 
@@ -132,20 +331,170 @@ class AirtimePageState extends State<AirtimePage> {
                   color: Palette.primaryDark,
                 ),
               )),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              _purchaseTypeButton(
-                  menuData.data!.purchaseTypeSection!.purchaseTypes!),
-              typeSelected ? _networkTypeButton() : const SizedBox(),
-              networkSelected ? _amountSelectionButton() : const SizedBox(),
-            ],
-          )
+          _content()
         ],
       ),
     );
   }
 
+  //main views
+  Widget _content() {
+    if (currentAction == ActionStates.purchaseSummary) {
+      return _summaryView();
+    } else {
+      return _actionView();
+    }
+  }
+
+  Widget _actionView() {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        _purchaseTypeButton(menuData.data!.purchaseTypeSection!.purchaseTypes!),
+        typeSelected ? _networkTypeButton() : const SizedBox(),
+        networkSelected ? _amountSelectionButton() : const SizedBox(),
+        (amountSelected && currentUseCase == PageStates.topup)
+            ? _msisdnButton()
+            : const SizedBox(),
+      ],
+    );
+  }
+
+  Widget _summaryView() {
+    var size = MediaQuery.of(context).size;
+    final double itemWidth = size.width / 2;
+
+    return ClipPath(
+            clipper: MovieTicketClipper(),
+            child: Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10))),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+           SizedBox(
+            height: 60,
+            child: Center(child: Text('SUMMARY', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.w900),),)
+          ),
+         
+          SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    menuData.data!.purchaseTypeSection!.title!,
+                    style: _buttonTextStyle,
+                  ),
+                )),
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    selectedAction.name!,
+                    textAlign: TextAlign.right,
+                    style: _buttonTextStyle,
+                  ),
+                ))
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    menuData.data!.providerSection!.title!,
+                    style: _buttonTextStyle,
+                  ),
+                )),
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    selectedProvider.name!,
+                    textAlign: TextAlign.right,
+                    style: _buttonTextStyle,
+                  ),
+                ))
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    'Amount',
+                    style: _buttonTextStyle,
+                  ),
+                )),
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    _getFormattedAmountFromCents(selectedAmountInCents),
+                    textAlign: TextAlign.right,
+                    style: _buttonTextStyle,
+                  ),
+                ))
+              ],
+            ),
+          ),
+          currentUseCase == PageStates.topup
+              ? SizedBox(
+                  height: 60,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                          child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          selectedProduct.purchaseTypeId == 2
+                              ? _getInputFieldForAction(selectedProduct
+                                      .extraFields!.first.inputFieldId!)
+                                  .name!
+                              : '',
+                          style: _buttonTextStyle,
+                        ),
+                      )),
+                      Expanded(
+                          child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          _msidnController.text,
+                          textAlign: TextAlign.right,
+                          style: _buttonTextStyle,
+                        ),
+                      ))
+                    ],
+                  ),
+                )
+              : Container(),
+              SizedBox(height: 32,)
+          
+        ],
+      ),
+    ));
+  }
+
+  // widget elements
   Widget _purchaseTypeButton(List<PurchaseType> types) {
     var size = MediaQuery.of(context).size;
     final double itemWidth = size.width / 2;
@@ -416,7 +765,60 @@ class AirtimePageState extends State<AirtimePage> {
                           })),
                 )
               : const SizedBox(),
-          _getCustomAmountButton()
+          currentAction == ActionStates.amountSelection
+              ? _getCustomAmountButton()
+              : Container()
+        ],
+      ),
+    );
+  }
+
+  Widget _msisdnButton() {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 60,
+            child: Material(
+              child: InkWell(
+                onTap: () {
+                  _showPhoneNumberSheet();
+                },
+                child: SizedBox(
+                  height: 60,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                          child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          selectedProduct.purchaseTypeId == 2
+                              ? _getInputFieldForAction(selectedProduct
+                                      .extraFields!.first.inputFieldId!)
+                                  .name!
+                              : '',
+                          style: _buttonTextStyle,
+                        ),
+                      )),
+                      const Expanded(
+                          child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Icon(Icons.chevron_right),
+                        ),
+                      ))
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -429,6 +831,11 @@ class AirtimePageState extends State<AirtimePage> {
           height: 60,
           child: Material(
             child: InkWell(
+              onTap: () {
+                _showCustomAmountSheet(selectedProduct
+                        .preDefinedAmount?.customAmountItem?.description ??
+                    'Select Own Amount');
+              },
               child: Center(
                 child: Text(
                   selectedProduct
@@ -445,6 +852,7 @@ class AirtimePageState extends State<AirtimePage> {
     }
   }
 
+  // utility fuctions
   String _getFormattedAmountFromCents(int amountInCents) {
     if (amountInCents <= 0) {
       return '-';
@@ -455,14 +863,37 @@ class AirtimePageState extends State<AirtimePage> {
 
   Product _getProductOfferingForProvider(ServiceProvider provider) {
     Product providerOffering = Product();
-    for (var product in menuData.data!.products!) {
-      if (product.providerId! == provider.id) {
-        providerOffering = product;
-        print(
-            'FOUND PRODUCT: ${json.encode(product.preDefinedAmount!.fixedAmountItems!)}');
-        break;
+    if (currentAction == PageStates.topup) {
+      for (var product in menuData.data!.products!) {
+        if (product.providerId! == provider.id && product.purchaseTypeId == 2) {
+          providerOffering = product;
+          print(
+              'FOUND PRODUCT: ${json.encode(product.preDefinedAmount!.fixedAmountItems!)}');
+          break;
+        }
+      }
+    } else {
+      for (var product in menuData.data!.products!) {
+        if (product.providerId! == provider.id && product.purchaseTypeId == 1) {
+          providerOffering = product;
+          print(
+              'FOUND PRODUCT: ${json.encode(product.preDefinedAmount!.fixedAmountItems!)}');
+          break;
+        }
       }
     }
     return providerOffering;
+  }
+
+  AvailableInputFields _getInputFieldForAction(int i) {
+    var fields = menuData.data!.availableInputFields!;
+    var selectedField = fields[0];
+    for (var f in fields) {
+      if (f.id == i) {
+        selectedField = f;
+        break;
+      }
+    }
+    return selectedField;
   }
 }
