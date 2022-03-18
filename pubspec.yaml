@@ -17,6 +17,8 @@ dependencies:
   intl: ^0.17.0
   shimmer: ^2.0.0
   flutter_custom_clippers: ^2.0.0
+  lottie: ^1.2.2
+  flutter_svg: ^1.0.3
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +35,7 @@ flutter:
     - assets/icons/ic_eezi_airtime.png
     - assets/icons/ic_provider_cell.png
     - assets/icons/ic_provider_mtn.png
+    - assets/icons/double-chevron.png
     - assets/icons/ic_provider_telkom.png
     - assets/icons/ic_provider_virgin.png
     - assets/icons/ic_provider_vodacom.png
@@ -40,4 +43,7 @@ flutter:
     - assets/images/flash_guy.png
     - assets/images/icon.jpeg
     - assets/images/flash_bg.jpeg
+    - assets/anim/busy.json
+    - assets/anim/sales.json
+    - assets/anim/deals.json
     

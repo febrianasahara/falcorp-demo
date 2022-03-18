@@ -9,11 +9,13 @@ import 'package:airtime_purchase_app/models/purchase/fixed_amount_item.dart';
 import 'package:airtime_purchase_app/models/purchase/pre_defined_amount.dart';
 import 'package:airtime_purchase_app/models/purchase/product.dart';
 import 'package:airtime_purchase_app/models/purchase/purchase_types.dart';
+import 'package:airtime_purchase_app/models/ui/available-done-actions.dart';
 import 'package:airtime_purchase_app/models/ui/available_input_fields.dart';
 import 'package:airtime_purchase_app/theme/palette.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+import 'package:flutter_svg/svg.dart';
 
 enum PageStates { topup, voucher }
 
@@ -286,7 +288,6 @@ class AirtimePageState extends State<AirtimePage> {
                     child: Container(
                       child: Center(
                         child: ElevatedButton(
-                          
                           onPressed: () {
                             onPhoneNumberSubmitted(_msidnController.text);
                             Navigator.of(context).pop();
@@ -331,7 +332,8 @@ class AirtimePageState extends State<AirtimePage> {
                   color: Palette.primaryDark,
                 ),
               )),
-          _content()
+          _content(),
+          _actionButton()
         ],
       ),
     );
@@ -365,133 +367,142 @@ class AirtimePageState extends State<AirtimePage> {
     final double itemWidth = size.width / 2;
 
     return ClipPath(
-            clipper: MovieTicketClipper(),
-            child: Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(10),topRight: Radius.circular(10))),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-           SizedBox(
-            height: 60,
-            child: Center(child: Text('SUMMARY', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.w900),),)
-          ),
-         
-          SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    menuData.data!.purchaseTypeSection!.title!,
-                    style: _buttonTextStyle,
-                  ),
-                )),
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    selectedAction.name!,
-                    textAlign: TextAlign.right,
-                    style: _buttonTextStyle,
-                  ),
-                ))
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    menuData.data!.providerSection!.title!,
-                    style: _buttonTextStyle,
-                  ),
-                )),
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    selectedProvider.name!,
-                    textAlign: TextAlign.right,
-                    style: _buttonTextStyle,
-                  ),
-                ))
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    'Amount',
-                    style: _buttonTextStyle,
-                  ),
-                )),
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    _getFormattedAmountFromCents(selectedAmountInCents),
-                    textAlign: TextAlign.right,
-                    style: _buttonTextStyle,
-                  ),
-                ))
-              ],
-            ),
-          ),
-          currentUseCase == PageStates.topup
-              ? SizedBox(
+        clipper: MovieTicketClipper(),
+        child: Card(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(10), topRight: Radius.circular(10))),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
                   height: 60,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                          child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text(
-                          selectedProduct.purchaseTypeId == 2
-                              ? _getInputFieldForAction(selectedProduct
-                                      .extraFields!.first.inputFieldId!)
-                                  .name!
-                              : '',
-                          style: _buttonTextStyle,
-                        ),
-                      )),
-                      Expanded(
-                          child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Text(
-                          _msidnController.text,
-                          textAlign: TextAlign.right,
-                          style: _buttonTextStyle,
-                        ),
-                      ))
-                    ],
-                  ),
-                )
-              : Container(),
-              SizedBox(height: 32,)
-          
-        ],
-      ),
-    ));
+                  child: Center(
+                    child: Text(
+                      'SUMMARY',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900),
+                    ),
+                  )),
+              SizedBox(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        menuData.data!.purchaseTypeSection!.title!,
+                        style: _buttonTextStyle,
+                      ),
+                    )),
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        selectedAction.name!,
+                        textAlign: TextAlign.right,
+                        style: _buttonTextStyle,
+                      ),
+                    ))
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        menuData.data!.providerSection!.title!,
+                        style: _buttonTextStyle,
+                      ),
+                    )),
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        selectedProvider.name!,
+                        textAlign: TextAlign.right,
+                        style: _buttonTextStyle,
+                      ),
+                    ))
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        'Amount',
+                        style: _buttonTextStyle,
+                      ),
+                    )),
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        _getFormattedAmountFromCents(selectedAmountInCents),
+                        textAlign: TextAlign.right,
+                        style: _buttonTextStyle,
+                      ),
+                    ))
+                  ],
+                ),
+              ),
+              currentUseCase == PageStates.topup
+                  ? SizedBox(
+                      height: 60,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                              child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Text(
+                              selectedProduct.purchaseTypeId == 2
+                                  ? _getInputFieldForAction(selectedProduct
+                                          .extraFields!.first.inputFieldId!)
+                                      .name!
+                                  : '',
+                              style: _buttonTextStyle,
+                            ),
+                          )),
+                          Expanded(
+                              child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Text(
+                              _msidnController.text,
+                              textAlign: TextAlign.right,
+                              style: _buttonTextStyle,
+                            ),
+                          ))
+                        ],
+                      ),
+                    )
+                  : Container(),
+              SizedBox(
+                height: 32,
+              )
+            ],
+          ),
+        ));
   }
 
   // widget elements
@@ -852,6 +863,47 @@ class AirtimePageState extends State<AirtimePage> {
     }
   }
 
+  Widget _actionButton() {
+    AvailableDoneActions action = _getDoneAction(selectedAction.doneActionId?? 1);
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding:const EdgeInsets.all(20),
+        child: SizedBox(
+          height: 70,
+          child: AnimatedOpacity(
+              opacity:
+                  currentAction == ActionStates.purchaseSummary ? 1.0 : 0.2,
+              duration: const Duration(milliseconds: 500),
+              child: Material(
+                color: Colors.black,
+                child: InkWell(
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Text(action.name!, style: const TextStyle(
+      color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),),
+                      ),
+                      Align(alignment: Alignment.centerRight,child: Padding(padding: EdgeInsets.all(15),child: SizedBox(height: 30,width: 30,child: Image.asset('assets/icons/double-chevron.png'),),),)
+                    ],
+                  ),
+                  onTap: () {
+                    if (currentAction == ActionStates.purchaseSummary) {
+                      // click enabled - call API
+
+                    }
+                  },
+                ),
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              )),
+        ),
+      ),
+    );
+  }
+
   // utility fuctions
   String _getFormattedAmountFromCents(int amountInCents) {
     if (amountInCents <= 0) {
@@ -895,5 +947,17 @@ class AirtimePageState extends State<AirtimePage> {
       }
     }
     return selectedField;
+  }
+
+  AvailableDoneActions _getDoneAction(int i) {
+    var actions = menuData.data!.availableDoneActions!;
+    var selectedAction = actions[0];
+    for (var f in actions) {
+      if (f.id == i) {
+        selectedAction = f;
+        break;
+      }
+    }
+    return selectedAction;
   }
 }

@@ -8,6 +8,7 @@ import 'package:airtime_purchase_app/theme/palette.dart';
 import 'package:airtime_purchase_app/views/airtime-page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -140,7 +141,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 child: Column(
                   children: [
                     showRetry
-                        ? Container()
+                        ? Lottie.asset('assets/anim/deals.json')
                         : Container(
                             margin: EdgeInsets.only(top: 30),
                             height: 72,
@@ -194,15 +195,12 @@ class WelcomeScreenState extends State<WelcomeScreen> {
           clipBehavior: Clip.antiAlias,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          child: const Padding(
+          child: Padding(
             padding: const EdgeInsets.all(12),
             child: SizedBox(
               height: 80,
               width: 80,
-              child: const CircularProgressIndicator(
-                color: Colors.lightGreen,
-                strokeWidth: 2,
-              ),
+              child: Lottie.asset('assets/anim/busy.json'),
             ),
           ),
         ),
