@@ -47,9 +47,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       setState(() {
         busy = false;
       });
-      if (kDebugMode) {
-        print(json.encode(responseFromServer));
-      }
+    
       openApp(responseFromServer);
     }).catchError((error) {
       if (kDebugMode) {

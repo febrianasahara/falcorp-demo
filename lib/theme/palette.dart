@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 
 class Palette {
@@ -32,4 +34,6 @@ class Palette {
       900: Color(0xffffffff), //100%
     },
   );
+
+
 }

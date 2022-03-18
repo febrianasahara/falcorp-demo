@@ -1,5 +1,4 @@
 import 'package:airtime_purchase_app/models/menu_response.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 
@@ -13,9 +12,7 @@ class AirtimeRepository {
     if (response.statusCode == 200) {
       var jsonResponse =
           convert.jsonDecode(response.body) as Map<String, dynamic>;
-      if (kDebugMode) {
-        print('Menu Returned : $jsonResponse.');
-      }
+     
       var itemCount = MenuResponse.fromJson(jsonResponse);
 
       return itemCount;
